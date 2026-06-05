@@ -259,7 +259,7 @@ textarea { resize: none; min-height: 80px; }
 </div>
 
 <script>
-const FLOW_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/7aac4a16c8cc4e0dbd09556d34345d4d/triggers/manual/paths/invoke?api-version=1";
+const FLOW_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/308bfc7d48fa4a369baf65128acfb499/triggers/manual/paths/invoke?api-version=1";
 const SP_SITE = "https://reseauxplus971.sharepoint.com/sites/RseauxPlus";
 const LIST_NAME = "Demandes_Conges";
 const ADMINS = ["Fabrice Carew", "Nicolas Lemond"];
@@ -376,7 +376,7 @@ async function soumettre() {
     signature_employe:document.getElementById("sigCanvas").toDataURL("image/png")
   };
   try {
-    await fetch(FLOW_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    await fetch(FLOW_URL,{method:"POST",headers:{"Content-Type":"text/plain"},mode:"no-cors",body:JSON.stringify(payload)});
     const today=new Date();
     document.getElementById("refBadge").textContent="CONGE-"+today.toISOString().slice(0,10).replace(/-/g,"")+"-"+nom.split(" ")[0].toUpperCase();
     [1,2,3].forEach(i=>document.getElementById("step"+i).style.display="none");
