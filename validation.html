@@ -204,9 +204,9 @@ async function pkceChallenge() {
 
 async function login() {
   const { verifier, challenge } = await pkceChallenge();
-  sessionStorage.setItem("pkce_verifier", verifier);
-  sessionStorage.setItem("conge_token", token);
-  sessionStorage.setItem("conge_role", role);
+  localStorage.setItem("pkce_verifier", verifier);
+  localStorage.setItem("conge_token", token);
+  localStorage.setItem("conge_role", role);
   const url = "https://login.microsoftonline.com/" + TENANT_ID + "/oauth2/v2.0/authorize"
     + "?client_id=" + CLIENT_ID
     + "&response_type=code"
@@ -219,7 +219,7 @@ async function login() {
 }
 
 async function exchangeCode(code) {
-  const verifier = sessionStorage.getItem("pkce_verifier");
+  const verifier = localStorage.getItem("pkce_verifier");
   const body = new URLSearchParams({
     client_id: CLIENT_ID,
     grant_type: "authorization_code",
@@ -234,7 +234,7 @@ async function exchangeCode(code) {
 }
 
 function logout() {
-  sessionStorage.clear();
+  localStorage.clear();
   window.location.href = "https://login.microsoftonline.com/" + TENANT_ID + "/oauth2/v2.0/logout?post_logout_redirect_uri=" + encodeURIComponent(REDIRECT_URI);
 }
 
@@ -263,21 +263,21 @@ async function spPatch(url, body) {
 async function init() {
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get("code");
-  const savedToken = sessionStorage.getItem("conge_token") || token;
-  const savedRole = sessionStorage.getItem("conge_role") || role;
+  const savedToken = localStorage.getItem("conge_token") || token;
+  const savedRole = localStorage.getItem("conge_role") || role;
 
   if (code) {
     // Retour auth — échanger le code
     try {
       accessToken = await exchangeCode(code);
-      sessionStorage.setItem("sp_token", accessToken);
+      localStorage.setItem("sp_token", accessToken);
       // Nettoyer URL
       const cleanUrl = REDIRECT_URI + "?token=" + savedToken + "&role=" + savedRole;
       window.history.replaceState({}, "", cleanUrl);
       await chargerDemande(savedToken, savedRole);
     } catch(e) { showError(); }
-  } else if (sessionStorage.getItem("sp_token")) {
-    accessToken = sessionStorage.getItem("sp_token");
+  } else if (localStorage.getItem("sp_token")) {
+    accessToken = localStorage.getItem("sp_token");
     await chargerDemande(savedToken, savedRole);
   } else {
     show("loadingScreen", false);
@@ -304,7 +304,7 @@ async function chargerDemande(tok, rl) {
     afficherDemande(rl);
   } catch(e) {
     // Token expiré → re-login
-    sessionStorage.removeItem("sp_token");
+    localStorage.removeItem("sp_token");
     show("loadingScreen", false);
     show("loginScreen", true);
   }
@@ -345,7 +345,7 @@ function afficherDemande(rl) {
 }
 
 async function valider(approuver) {
-  const rl = sessionStorage.getItem("conge_role") || role;
+  const rl = localStorage.getItem("conge_role") || role;
   const commentaire = document.getElementById("commentaire").value;
   const now = new Date().toISOString();
 
