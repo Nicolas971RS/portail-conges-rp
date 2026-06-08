@@ -142,12 +142,15 @@ textarea { resize: none; min-height: 80px; }
         <label>Votre nom <span class="req">*</span></label>
         <select id="nomEmploye" onchange="onNomChange()">
           <option value="">— Sélectionnez —</option>
+          <option value="Aristide Paisley">Aristide Paisley</option>
           <option value="Fabrice Carew">Fabrice Carew</option>
+          <option value="Francky Dacourt">Francky Dacourt</option>
           <option value="Frédéric Ballet">Frédéric Ballet</option>
           <option value="Fritz Peter">Fritz Peter</option>
           <option value="Monique Meynard">Monique Meynard</option>
           <option value="Nicolas Lemond">Nicolas Lemond</option>
           <option value="Patricia Gene">Patricia Gene</option>
+          <option value="Said Tougond">Said Tougond</option>
         </select>
       </div>
       <div class="field">
@@ -237,6 +240,9 @@ textarea { resize: none; min-height: 80px; }
         <option value="Monique Meynard" class="opt-admin" style="display:none">Monique Meynard</option>
         <option value="Nicolas Lemond" class="opt-admin" style="display:none">Nicolas Lemond</option>
         <option value="Patricia Gene" class="opt-admin" style="display:none">Patricia Gene</option>
+        <option value="Aristide Paisley" class="opt-admin" style="display:none">Aristide Paisley</option>
+        <option value="Said Tougond" class="opt-admin" style="display:none">Said Tougond</option>
+        <option value="Francky Dacourt" class="opt-admin" style="display:none">Francky Dacourt</option>
       </select>
     </div>
     <div class="field" style="margin:0">
@@ -265,11 +271,14 @@ const MODE = "ouvrables";
 
 const EMPLOYES_MAP = {
   "Fabrice Carew":   {id:6, email:"f.carew@reseauxplus.com"},
-  "Frédéric Ballet": {id:5, email:"f.ballet@reseauxplus.com"},
-  "Fritz Peter":     {id:2, email:"f.peter@reseauxplus.com"},
-  "Monique Meynard": {id:3, email:"m.meynard@reseauxplus.com"},
-  "Nicolas Lemond":  {id:4, email:"n.lemond@reseauxplus.com"},
-  "Patricia Gene":   {id:1, email:"p.gene@reseauxplus.com"}
+  "Frédéric Ballet": {id:5, email:"fredoballet1@gmail.com"},
+  "Fritz Peter":     {id:2, email:"fritzpeter971@gmail.com"},
+  "Monique Meynard": {id:3, email:"mmeynard971@gmail.com"},
+  "Nicolas Lemond":  {id:4, email:"lemond.nicolas@gmail.com"},
+  "Patricia Gene":   {id:1, email:"p.gene@orange.fr"},
+  "Aristide Paisley":{id:7, email:"Paisley-aristide@hotmail.com"},
+  "Said Tougond":    {id:8, email:"said.971@live.fr"},
+  "Francky Dacourt": {id:9, email:"francky.dacourt@gmail.com"}
 };
 
 let nbJours = 0;
