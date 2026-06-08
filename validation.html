@@ -205,8 +205,9 @@ async function pkceChallenge() {
 async function login() {
   const { verifier, challenge } = await pkceChallenge();
   localStorage.setItem("pkce_verifier", verifier);
-  localStorage.setItem("conge_token", token);
-  localStorage.setItem("conge_role", role);
+  // Stocker token/role dans state OAuth2 — ils reviennent intacts après redirection
+  const stateData = JSON.stringify({ conge_token: localStorage.getItem("conge_token"), conge_role: localStorage.getItem("conge_role") });
+  const state = btoa(stateData);
   const url = "https://login.microsoftonline.com/" + TENANT_ID + "/oauth2/v2.0/authorize"
     + "?client_id=" + CLIENT_ID
     + "&response_type=code"
@@ -214,7 +215,8 @@ async function login() {
     + "&scope=" + encodeURIComponent(SCOPES)
     + "&code_challenge=" + challenge
     + "&code_challenge_method=S256"
-    + "&response_mode=query";
+    + "&response_mode=query"
+    + "&state=" + encodeURIComponent(state);
   window.location.href = url;
 }
 
@@ -263,15 +265,30 @@ async function spPatch(url, body) {
 async function init() {
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get("code");
-  const savedToken = localStorage.getItem("conge_token") || token;
-  const savedRole = localStorage.getItem("conge_role") || role;
+  const stateParam = urlParams.get("state");
+
+  // Récupérer token/role depuis URL directe
+  const urlToken = params.get("token");
+  const urlRole = params.get("role");
+  if (urlToken) localStorage.setItem("conge_token", urlToken);
+  if (urlRole) localStorage.setItem("conge_role", urlRole);
+
+  // Ou depuis state OAuth2 au retour de Microsoft
+  if (stateParam) {
+    try {
+      const stateData = JSON.parse(atob(decodeURIComponent(stateParam)));
+      if (stateData.conge_token) localStorage.setItem("conge_token", stateData.conge_token);
+      if (stateData.conge_role) localStorage.setItem("conge_role", stateData.conge_role);
+    } catch(e) {}
+  }
+
+  const savedToken = localStorage.getItem("conge_token") || "";
+  const savedRole = localStorage.getItem("conge_role") || "";
 
   if (code) {
-    // Retour auth — échanger le code
     try {
       accessToken = await exchangeCode(code);
       localStorage.setItem("sp_token", accessToken);
-      // Nettoyer URL
       const cleanUrl = REDIRECT_URI + "?token=" + savedToken + "&role=" + savedRole;
       window.history.replaceState({}, "", cleanUrl);
       await chargerDemande(savedToken, savedRole);
