@@ -171,6 +171,7 @@ async function init() {
 
     if (!items.length) { showError(); return; }
     itemData = items[0];
+    console.log('itemData:', JSON.stringify(itemData));
     afficherDemande();
 
   } catch(e) {
@@ -182,15 +183,20 @@ function afficherDemande() {
   show("loadingScreen", false);
   show("mainContent", true);
 
-  document.getElementById("infoNom").textContent = itemData.Nom_EmployeValue || "—";
-  document.getElementById("infoType").textContent = itemData.Type_Conge || "—";
+  // Champs Lookup SP retournent {Value: "..."} ou string directement
+  const nom = itemData.Nom_EmployeValue || (itemData.Nom_Employe && itemData.Nom_Employe.Value) || itemData["Nom_EmployeLookupValue"] || "—";
+  const type = (itemData.Type_Conge && itemData.Type_Conge.Value) ? itemData.Type_Conge.Value : (itemData.Type_Conge || "—");
+  const statut_raw = (itemData.Statut && itemData.Statut.Value) ? itemData.Statut.Value : (itemData.Statut || "En attente comptable");
+
+  document.getElementById("infoNom").textContent = nom;
+  document.getElementById("infoType").textContent = type;
   document.getElementById("infoDebut").textContent = formatDate(itemData.Date_Debut);
   document.getElementById("infoFin").textContent = formatDate(itemData.Date_Fin);
   document.getElementById("infoMotif").textContent = itemData.Motif || "Non renseigné";
   document.getElementById("infoJours").textContent = itemData.Nb_Jours || 0;
   document.getElementById("infoRef").textContent = itemData.Title || "—";
 
-  const statut = itemData.Statut || "En attente comptable";
+  const statut = statut_raw;
   const badgeMap = {
     "En attente comptable": "statut-attente-c",
     "En attente Fabrice": "statut-attente-f",
