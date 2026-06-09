@@ -232,7 +232,8 @@ textarea { resize: none; min-height: 80px; }
   <div class="vue-row">
     <div class="field" style="margin:0">
       <label>Afficher</label>
-      <select id="histoFiltreEmploye" onchange="chargerHistorique()">
+      <select id="histoFiltreEmploye" onchange="onHistoFiltreChange()">
+        <option value="">— Choisissez votre nom —</option>
         <option value="moi">Mon historique</option>
         <option value="tous" id="optTous" style="display:none">Tous les employés</option>
         <option value="Fabrice Carew" class="opt-admin" style="display:none">Fabrice Carew</option>
@@ -405,11 +406,22 @@ function formatDate2(d){if(!d)return "—";return new Date(d).toLocaleDateString
 
 const PA5_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/c1beac7cf2db4b04bff108238fbda004/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ltOeg3_RTjgv4B30NmCEPYF-1AQz9frZP8DrhD9sCZo";
 
+function onHistoFiltreChange() {
+  const filtre = document.getElementById("histoFiltreEmploye").value;
+  if(filtre !== "moi" && filtre !== "tous") currentUser = filtre;
+  chargerHistorique();
+}
+
 async function chargerHistorique() {
   const filtre=document.getElementById("histoFiltreEmploye").value;
   document.getElementById("histoLoading").style.display="block";
   document.getElementById("histoList").innerHTML="";
   document.getElementById("histoEmpty").style.display="none";
+  if(!filtre) {
+    document.getElementById("histoLoading").style.display="none";
+    document.getElementById("histoEmpty").style.display="none";
+    return;
+  }
   try {
     let employe_id = 0;
     if(filtre==="moi"){const emp=EMPLOYES_MAP[currentUser];if(emp)employe_id=emp.id;}
