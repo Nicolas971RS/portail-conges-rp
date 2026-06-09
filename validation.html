@@ -267,7 +267,7 @@ async function valider(approuver) {
 
 function showError() { show("loadingScreen", false); show("errorScreen", true); }
 function show(id, v) { document.getElementById(id).style.display = v ? "block" : "none"; }
-function formatDate(d) { if(!d) return "—"; return new Date(d).toLocaleDateString("fr-FR"); }
+function formatDate(d) { if(!d) return "—"; const p=d.slice(0,10).split("-"); return p[2]+"/"+p[1]+"/"+p[0]; }
 
 init();
 </script>
