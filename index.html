@@ -451,8 +451,11 @@ const EMPLOYES_ORDRE = ["Fabrice Carew","Frédéric Ballet","Fritz Peter","Moniq
 function moisPrecedent() { planningDate.setMonth(planningDate.getMonth()-1); chargerPlanning(); }
 function moisSuivant()   { planningDate.setMonth(planningDate.getMonth()+1); chargerPlanning(); }
 
+const PA4_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/bb52093dcc344b5485d31635895f80b9/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=mqvKluRyjk8w2jtyapdpTfVgP4ykGcXZoUW3lJVh6MA";
+
 async function chargerPlanning() {
   document.getElementById("planningLoading").style.display="block";
+  document.getElementById("planningLoading").innerHTML="⏳ Chargement…";
   document.getElementById("planningWrap").style.display="none";
   const mois = planningDate.getMonth();
   const annee = planningDate.getFullYear();
@@ -460,14 +463,18 @@ async function chargerPlanning() {
   const debut = annee+"-"+(mois+1).toString().padStart(2,"0")+"-01T00:00:00Z";
   const fin   = new Date(annee, mois+1, 1).toISOString().slice(0,10)+"T00:00:00Z";
   try {
-    const url = SP_SITE+"/_api/web/lists/getbytitle('"+LIST_NAME+"')/items?$select=Nom_EmployeValue,Date_Debut,Date_Fin,Statut,Type_Conge&$filter=Date_Debut le datetime'"+fin+"' and Date_Fin ge datetime'"+debut+"' and (Statut eq 'Approuvé' or Statut eq 'En attente comptable' or Statut eq 'En attente Fabrice' or Statut eq 'Clôturé')&$top=200";
-    const resp = await fetch(url,{headers:{"Accept":"application/json;odata=verbose"}});
-    if(!resp.ok) throw new Error("SP");
-    const data = await resp.json();
-    planningData = data.d.results;
+    const resp = await fetch(PA4_URL, {
+      method: "POST",
+      headers: {"Content-Type": "text/plain"},
+      body: JSON.stringify({date_debut: debut, date_fin: fin})
+    });
+    if(!resp.ok) throw new Error("PA4");
+    const raw = await resp.text();
+    const data = JSON.parse(raw);
+    planningData = data.value || [];
     renderPlanning(mois, annee);
   } catch(e) {
-    document.getElementById("planningLoading").innerHTML="⚠️ Connexion SharePoint requise pour afficher le planning.";
+    document.getElementById("planningLoading").innerHTML="⚠️ Erreur de chargement. Réessayez.";
   }
 }
 
@@ -493,7 +500,7 @@ function renderPlanning(mois, annee) {
       const we = wd===0||wd===6;
       // Cherche une demande couvrant ce jour
       const demande = planningData.find(d => {
-        const nom_d = d.Nom_EmployeValue||"";
+        const nom_d = (d.Nom_Employe && d.Nom_Employe.Value) || d.Nom_EmployeValue || "";
         if(nom_d !== nom) return false;
         const dd = new Date(d.Date_Debut);
         const df = new Date(d.Date_Fin);
@@ -503,10 +510,10 @@ function renderPlanning(mois, annee) {
       let cls = we ? "weekend" : "";
       let content = "";
       if(demande) {
-        const s = demande.Statut||"";
+        const s = (demande.Statut && demande.Statut.Value) || demande.Statut || "";
         if(s==="Approuvé"||s==="Clôturé") cls += " cell-approuve";
         else cls += " cell-attente";
-        content = demande.Type_Conge||"";
+        content = (demande.Type_Conge && demande.Type_Conge.Value) || demande.Type_Conge || "";
       }
       tbody += "<td class='"+cls.trim()+"'>"+content+"</td>";
     }
