@@ -337,14 +337,74 @@ function showStep(n) {
   window.scrollTo(0,0);
 }
 
+// Calcul date de Pâques (algorithme de Meeus/Jones/Butcher)
+function paques(annee) {
+  const a = annee % 19;
+  const b = Math.floor(annee / 100);
+  const c = annee % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mois = Math.floor((h + l - 7 * m + 114) / 31);
+  const jour = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(annee, mois - 1, jour);
+}
+
+function getJoursFeries(annee) {
+  const p = paques(annee);
+  const add = (date, jours) => { const d = new Date(date); d.setDate(d.getDate() + jours); return d; };
+  const fmt = d => d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+
+  const feries = new Set([
+    // Fixes nationaux
+    annee+"-01-01",  // Nouvel An
+    annee+"-05-01",  // Fête du Travail
+    annee+"-05-08",  // Victoire 1945
+    annee+"-07-14",  // Fête Nationale
+    annee+"-08-15",  // Assomption
+    annee+"-11-01",  // Toussaint
+    annee+"-11-11",  // Armistice
+    annee+"-12-25",  // Noël
+    // Fixes Guadeloupe
+    annee+"-05-27",  // Abolition de l'esclavage
+    annee+"-07-21",  // Fête de Sainte-Marie-Madeleine (Capesterre)
+    // Mobiles nationaux
+    fmt(add(p, 1)),   // Lundi de Pâques
+    fmt(add(p, 39)),  // Ascension
+    fmt(add(p, 50)),  // Lundi de Pentecôte
+    // Mobiles Guadeloupe
+    fmt(add(p, -48)), // Mardi Gras (48j avant Pâques)
+    fmt(add(p, -47)), // Mercredi des Cendres
+    fmt(add(p, -2)),  // Vendredi Saint
+  ]);
+  return feries;
+}
+
 function calculerJours() {
   const debut = document.getElementById("dateDebut").value;
   const fin = document.getElementById("dateFin").value;
   if (!debut || !fin || fin < debut) { nbJours=0; return; }
   let count=0, cur=new Date(debut+"T12:00:00"), end=new Date(fin+"T12:00:00");
+  // Précalculer les fériés pour les années couvrant la période
+  const anneesSet = new Set();
+  for (let d = new Date(cur); d <= end; d.setFullYear(d.getFullYear())) {
+    anneesSet.add(d.getFullYear()); break;
+  }
+  anneesSet.add(new Date(fin+"T12:00:00").getFullYear());
+  let feries = new Set();
+  anneesSet.forEach(a => { getJoursFeries(a).forEach(f => feries.add(f)); });
+
   while (cur <= end) {
-    const d=cur.getDay();
-    if (MODE==="ouvrables" ? d!==0 : (d!==0&&d!==6)) count++;
+    const wd = cur.getDay();
+    const dateStr = cur.getFullYear()+"-"+String(cur.getMonth()+1).padStart(2,"0")+"-"+String(cur.getDate()).padStart(2,"0");
+    const estFerie = feries.has(dateStr);
+    if (wd !== 0 && !estFerie) count++; // exclut dimanche et fériés
     cur.setDate(cur.getDate()+1);
   }
   nbJours=count;
