@@ -403,24 +403,39 @@ function reset(){
 function formatDate(d){const[y,m,j]=d.split("-");return j+"/"+m+"/"+y;}
 function formatDate2(d){if(!d)return "—";return new Date(d).toLocaleDateString("fr-FR");}
 
+const PA5_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/c1beac7cf2db4b04bff108238fbda004/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ltOeg3_RTjgv4B30NmCEPYF-1AQz9frZP8DrhD9sCZo";
+
 async function chargerHistorique() {
   const filtre=document.getElementById("histoFiltreEmploye").value;
   document.getElementById("histoLoading").style.display="block";
   document.getElementById("histoList").innerHTML="";
   document.getElementById("histoEmpty").style.display="none";
   try {
-    let filter="";
-    if(filtre==="moi"){const emp=EMPLOYES_MAP[currentUser];if(emp)filter="&$filter=Nom_EmployeId eq "+emp.id;}
-    else if(filtre!=="tous"){const emp=EMPLOYES_MAP[filtre];if(emp)filter="&$filter=Nom_EmployeId eq "+emp.id;}
-    const url=SP_SITE+"/_api/web/lists/getbytitle('"+LIST_NAME+"')/items?$select=ID,Title,Nom_EmployeValue,Type_Conge,Date_Debut,Date_Fin,Nb_Jours,Statut,Created&$orderby=Created desc&$top=50"+filter;
-    const resp=await fetch(url,{headers:{"Accept":"application/json;odata=verbose"}});
-    if(!resp.ok)throw new Error("SP error");
-    const data=await resp.json();
-    histoData=data.d.results;
+    let employe_id = 0;
+    if(filtre==="moi"){const emp=EMPLOYES_MAP[currentUser];if(emp)employe_id=emp.id;}
+    else if(filtre!=="tous"){const emp=EMPLOYES_MAP[filtre];if(emp)employe_id=emp.id;}
+    const resp=await fetch(PA5_URL,{
+      method:"POST",
+      headers:{"Content-Type":"text/plain"},
+      body:JSON.stringify({employe_id:employe_id})
+    });
+    if(!resp.ok)throw new Error("PA5 error");
+    const raw=await resp.text();
+    const data=JSON.parse(raw);
+    histoData=(data.value||[]).map(d=>({
+      Title:d.Title,
+      Nom_EmployeValue:(d.Nom_Employe&&d.Nom_Employe.Value)||d.Nom_EmployeValue||"—",
+      Type_Conge:(d.Type_Conge&&d.Type_Conge.Value)||d.Type_Conge||"—",
+      Date_Debut:d.Date_Debut,
+      Date_Fin:d.Date_Fin,
+      Nb_Jours:d.Nb_Jours,
+      Statut:(d.Statut&&d.Statut.Value)||d.Statut||"—",
+      Created:d.Created
+    }));
     filtrerHistorique();
   } catch(e){
     document.getElementById("histoLoading").style.display="none";
-    document.getElementById("histoList").innerHTML="<div class=\"histo-empty\">⚠️ Connexion SharePoint requise.<br><small>Connectez-vous au réseau Réseaux Plus pour accéder à l'historique.</small></div>";
+    document.getElementById("histoList").innerHTML="<div class=\"histo-empty\">⚠️ Erreur de chargement. Réessayez.</div>";
   }
 }
 
