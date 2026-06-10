@@ -469,7 +469,28 @@ function reset(){
 function formatDate(d){const[y,m,j]=d.split("-");return j+"/"+m+"/"+y;}
 function formatDate2(d){if(!d)return "—";return new Date(d).toLocaleDateString("fr-FR");}
 
+const PA7_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2c7b824bb4294cd89a165ca434fd201a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=gYj_Qg7Zp0Nf5uA4xPJ5aSB5dKZYHC9JUTIxrC4HA-8";
+
 const PA5_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/c1beac7cf2db4b04bff108238fbda004/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ltOeg3_RTjgv4B30NmCEPYF-1AQz9frZP8DrhD9sCZo";
+
+async function relancerFabrice(token, btn) {
+  if (!token) return;
+  btn.disabled = true;
+  btn.textContent = '⏳ Envoi…';
+  try {
+    await fetch(PA7_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({token}),
+      mode: 'no-cors'
+    });
+    btn.textContent = '✅ Rappel envoyé';
+    btn.style.background = '#38a169';
+  } catch(e) {
+    btn.textContent = '⚠️ Erreur';
+    btn.disabled = false;
+  }
+}
 
 function onHistoFiltreChange() {
   const filtre = document.getElementById("histoFiltreEmploye").value;
@@ -527,7 +548,10 @@ function filtrerHistorique(){
     const card=document.createElement("div");card.className="demande-card";
     const badgeMap={"En attente comptable":"badge-attente-c","En attente Fabrice":"badge-attente-f","Approuvé":"badge-approuve","Refusé":"badge-refuse","Clôturé":"badge-cloture"};
     const statut=d.Statut||"En attente comptable";
-    card.innerHTML=`<div class="demande-header"><div><div class="demande-ref">${d.Title||"—"}</div><div class="demande-nom">${d.Nom_EmployeValue||"—"}</div><div class="demande-type">${d.Type_Conge||"—"}</div></div><span class="badge ${badgeMap[statut]||"badge-cloture"}">${statut}</span></div><div class="demande-dates">📅 ${formatDate2(d.Date_Debut)} → ${formatDate2(d.Date_Fin)}</div><div class="demande-meta">${d.Nb_Jours||0} jour(s) · Soumis le ${formatDate2(d.Created)}</div>`;
+    const isAdmin = ADMINS.includes(currentUser);
+    const showRelancer = isAdmin && statut === 'En attente Fabrice';
+    const btnRelancer = showRelancer ? `<button class="btn-relancer" onclick="relancerFabrice('${d.Token_Acces||''}', this)">⏰ Relancer Fabrice</button>` : '';
+    card.innerHTML=`<div class="demande-header"><div><div class="demande-ref">${d.Title||"—"}</div><div class="demande-nom">${d.Nom_EmployeValue||"—"}</div><div class="demande-type">${d.Type_Conge||"—"}</div></div><span class="badge ${badgeMap[statut]||"badge-cloture"}">${statut}</span></div><div class="demande-dates">📅 ${formatDate2(d.Date_Debut)} → ${formatDate2(d.Date_Fin)}</div><div class="demande-meta">${d.Nb_Jours||0} jour(s) · Soumis le ${formatDate2(d.Created)}</div>${btnRelancer}`;
     list.appendChild(card);
   });
 }
@@ -637,6 +661,22 @@ function renderPlanning(mois, annee) {
 </body>
 </html><!-- PLANNING CSS -->
 <style>
+.btn-relancer {
+  margin-top: 10px;
+  padding: 7px 14px;
+  background: var(--violet);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-relancer:hover { background: #5a52d5; }
+.btn-relancer:disabled { opacity: 0.7; cursor: not-allowed; }
+
 .planning-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
 .planning-nav h2 { font-size:16px; font-weight:700; color:var(--navy); text-transform:capitalize; }
 .planning-nav button { background:var(--navy); color:#fff; border:none; border-radius:8px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; }
