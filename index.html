@@ -384,7 +384,7 @@ async function fetchSoldeCP(nom, badgeId, valId, nomId) {
   try {
     const resp = await fetch(PA8_URL, {
       method: "POST",
-      headers: { "Content-Type": "text/plain" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ employe_id: emp.id })
     });
     if (!resp.ok) return;
