@@ -288,9 +288,11 @@ let sigDrawing = false;
 let sigHasContent = false;
 let histoData = [];
 let currentUser = "";
+let sessionAdmin = "";
 
 function onNomChange() {
   currentUser = document.getElementById("nomEmploye").value;
+  if(ADMINS.includes(currentUser)) sessionAdmin = currentUser;
   const isAdmin = ADMINS.includes(currentUser);
   document.getElementById("optTous").style.display = isAdmin ? "" : "none";
   document.querySelectorAll(".opt-admin").forEach(o => o.style.display = isAdmin ? "" : "none");
@@ -493,13 +495,13 @@ async function relancerValidateur(token, role, btn) {
 }
 
 function onHistoFiltreChange() {
-  const filtre = document.getElementById("histoFiltreEmploye").value;
-  if(filtre !== "moi" && filtre !== "tous") currentUser = filtre;
   chargerHistorique();
 }
 
 async function chargerHistorique() {
   const filtre=document.getElementById("histoFiltreEmploye").value;
+  if(filtre==="moi" && currentUser && ADMINS.includes(currentUser)) sessionAdmin = currentUser;
+  else if(ADMINS.includes(filtre)) sessionAdmin = filtre;
   document.getElementById("histoLoading").style.display="block";
   document.getElementById("histoList").innerHTML="";
   document.getElementById("histoEmpty").style.display="none";
@@ -553,7 +555,7 @@ function filtrerHistorique(){
     const badgeMap={"En attente comptable":"badge-attente-c","En attente Fabrice":"badge-attente-f","Approuvé":"badge-approuve","Refusé":"badge-refuse","Clôturé":"badge-cloture"};
     const statut=d.Statut||"En attente comptable";
     const filtreCourant = document.getElementById("histoFiltreEmploye").value;
-    const isAdmin = ADMINS.includes(currentUser) || filtreCourant === "tous" || ADMINS.some(a => filtreCourant === a);
+    const isAdmin = ADMINS.includes(sessionAdmin) || filtreCourant === "tous" || ADMINS.includes(filtreCourant);
     const showRelancerFabrice = isAdmin && statut === 'En attente Fabrice';
     const showRelancerMonique = isAdmin && statut === 'En attente comptable';
     const btnRelancer = showRelancerFabrice
