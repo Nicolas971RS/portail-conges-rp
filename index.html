@@ -350,6 +350,7 @@ const PA3_URL  = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.a
 const PA4_URL  = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/bb52093dcc344b5485d31635895f80b9/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=mqvKluRyjk8w2jtyapdpTfVgP4ykGcXZoUW3lJVh6MA";
 const PA5_URL  = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/c1beac7cf2db4b04bff108238fbda004/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ltOeg3_RTjgv4B30NmCEPYF-1AQz9frZP8DrhD9sCZo";
 const PA7_URL  = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2c7b824bb4294cd89a165ca434fd201a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=gYj_Qg7Zp0Nf5uA4xPJ5aSB5dKZYHC9JUTIxrC4HA-8";
+const PA8_URL  = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/73b3cd6245154cd694eca750a8414060/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=PCQrmMIdUM3tBd8DC8Mw-4wb8zsiIr7_56Z5edJYa6c";
 const SP_SITE  = "https://reseauxplus971.sharepoint.com/sites/RseauxPlus";
 const ADMINS   = ["Fabrice Carew", "Nicolas Lemond"];
 
@@ -381,12 +382,15 @@ async function fetchSoldeCP(nom, badgeId, valId, nomId) {
   const emp = EMPLOYES_MAP[nom];
   if (!emp) return;
   try {
-    const resp = await fetch(SP_SITE + "/_api/web/lists/getbytitle('Employes_RP')/items(" + emp.id + ")?$select=Solde_CP", {
-      headers: { "Accept": "application/json;odata=verbose" }
+    const resp = await fetch(PA8_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ employe_id: emp.id })
     });
     if (!resp.ok) return;
-    const data = await resp.json();
-    const solde = data.d.Solde_CP;
+    const raw  = await resp.text();
+    const data = JSON.parse(raw);
+    const solde = data.Solde_CP;
     if (solde === null || solde === undefined) return;
     const badge = document.getElementById(badgeId);
     const val   = document.getElementById(valId);
