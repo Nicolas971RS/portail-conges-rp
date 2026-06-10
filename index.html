@@ -540,7 +540,11 @@ async function chargerHistorique() {
 function filtrerHistorique(){
   document.getElementById("histoLoading").style.display="none";
   const sf=document.getElementById("histoFiltreStatut").value;
-  const filtered=histoData.filter(d=>!sf||d.Statut===sf);
+  const fe=document.getElementById("histoFiltreEmploye").value;
+  let filtered=histoData;
+  if(fe==="moi"&&currentUser) filtered=filtered.filter(d=>d.Nom_EmployeValue===currentUser);
+  else if(fe&&fe!=="tous"&&fe!=="moi") filtered=filtered.filter(d=>d.Nom_EmployeValue===fe);
+  if(sf&&sf!=="tous") filtered=filtered.filter(d=>d.Statut===sf);
   const list=document.getElementById("histoList");list.innerHTML="";
   if(filtered.length===0){document.getElementById("histoEmpty").style.display="block";return;}
   document.getElementById("histoEmpty").style.display="none";
@@ -548,7 +552,8 @@ function filtrerHistorique(){
     const card=document.createElement("div");card.className="demande-card";
     const badgeMap={"En attente comptable":"badge-attente-c","En attente Fabrice":"badge-attente-f","Approuvé":"badge-approuve","Refusé":"badge-refuse","Clôturé":"badge-cloture"};
     const statut=d.Statut||"En attente comptable";
-    const isAdmin = ADMINS.includes(currentUser);
+    const filtreCourant = document.getElementById("histoFiltreEmploye").value;
+    const isAdmin = ADMINS.includes(currentUser) || filtreCourant === "tous" || ADMINS.some(a => filtreCourant === a);
     const showRelancerFabrice = isAdmin && statut === 'En attente Fabrice';
     const showRelancerMonique = isAdmin && statut === 'En attente comptable';
     const btnRelancer = showRelancerFabrice
