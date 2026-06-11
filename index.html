@@ -532,7 +532,7 @@ function reset(){
 
 // ── UTILS ────────────────────────────────────────────────────
 function formatDate(d){const[y,m,j]=d.split("-");return j+"/"+m+"/"+y;}
-function formatDate2(d){if(!d)return "—";return new Date(d).toLocaleDateString("fr-FR");}
+function formatDate2(d){if(!d)return "—";const s=d.slice(0,10).split('-');return s[2]+'/'+s[1]+'/'+s[0];}
 
 // ── RELANCER ─────────────────────────────────────────────────
 async function relancerValidateur(token, role, btn) {
