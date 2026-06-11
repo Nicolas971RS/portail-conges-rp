@@ -471,7 +471,7 @@ function paques(annee) {
 }
 function getJoursFeries(annee) {
   const p=paques(annee),add=(d,j)=>{const x=new Date(d);x.setDate(x.getDate()+j);return x;},fmt=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-  return new Set([annee+"-01-01",annee+"-05-01",annee+"-05-08",annee+"-07-14",annee+"-08-15",annee+"-11-01",annee+"-11-11",annee+"-12-25",annee+"-05-27",fmt(add(p,1)),fmt(add(p,39)),fmt(add(p,50)),fmt(add(p,-48)),fmt(add(p,-47)),fmt(add(p,-2))]);
+  return new Set([annee+"-01-01",annee+"-05-01",annee+"-05-08",annee+"-07-14",annee+"-08-15",annee+"-11-01",annee+"-11-02",annee+"-11-11",annee+"-12-25",annee+"-05-27",fmt(add(p,1)),fmt(add(p,39)),fmt(add(p,50)),fmt(add(p,-48)),fmt(add(p,-47)),fmt(add(p,-2))]);
 }
 function calculerJours() {
   const debut=document.getElementById("dateDebut").value,fin=document.getElementById("dateFin").value;
