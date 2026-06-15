@@ -604,6 +604,13 @@ async function chargerPlanning() {
     const raw = await resp.text();
     const data = JSON.parse(raw);
     planningData = data.value || [];
+    // DEBUG TEMP — à supprimer après diagnostic
+    if(planningData.length > 0) {
+      document.getElementById("planningLoading").style.display="block";
+      document.getElementById("planningLoading").innerHTML="🔍 DEBUG Statut[0]: <b>" + JSON.stringify(planningData[0]?.Statut) + "</b> | Nom: <b>" + JSON.stringify(planningData[0]?.Nom_Employe) + "</b>";
+      document.getElementById("planningWrap").style.display="none";
+      setTimeout(()=>{ document.getElementById("planningLoading").style.display="none"; document.getElementById("planningWrap").style.display="block"; }, 5000);
+    }
     renderPlanning(mois, annee);
   } catch(e) {
     document.getElementById("planningLoading").innerHTML="⚠️ Erreur de chargement. Réessayez.";
