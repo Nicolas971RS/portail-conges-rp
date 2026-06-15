@@ -605,12 +605,10 @@ async function chargerPlanning() {
     const data = JSON.parse(raw);
     planningData = data.value || [];
     // DEBUG TEMP — à supprimer après diagnostic
-    if(planningData.length > 0) {
-      document.getElementById("planningLoading").style.display="block";
-      document.getElementById("planningLoading").innerHTML="🔍 DEBUG Statut[0]: <b>" + JSON.stringify(planningData[0]?.Statut) + "</b> | Nom: <b>" + JSON.stringify(planningData[0]?.Nom_Employe) + "</b>";
-      document.getElementById("planningWrap").style.display="none";
-      setTimeout(()=>{ document.getElementById("planningLoading").style.display="none"; document.getElementById("planningWrap").style.display="block"; }, 5000);
-    }
+    document.getElementById("planningLoading").style.display="block";
+    document.getElementById("planningLoading").innerHTML="🔍 RAW: <pre style='font-size:10px;text-align:left;max-height:200px;overflow:auto;background:#f0f0f0;padding:8px'>" + JSON.stringify(data, null, 2).slice(0,2000) + "</pre>";
+    document.getElementById("planningWrap").style.display="none";
+    setTimeout(()=>{ document.getElementById("planningLoading").style.display="none"; document.getElementById("planningWrap").style.display="block"; }, 15000);
     renderPlanning(mois, annee);
   } catch(e) {
     document.getElementById("planningLoading").innerHTML="⚠️ Erreur de chargement. Réessayez.";
