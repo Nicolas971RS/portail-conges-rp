@@ -449,8 +449,8 @@ async function soumettre() {
   const payload={
     nom_employe:nom, email_employe:emp.email, nom_employe_id:emp.id,
     type_conge:document.getElementById("typeConge").value,
-    date_debut:document.getElementById("dateDebut").value+"T00:00:00Z",
-    date_fin:document.getElementById("dateFin").value+"T00:00:00Z",
+    date_debut:document.getElementById("dateDebut").value+"T12:00:00Z",
+    date_fin:document.getElementById("dateFin").value+"T12:00:00Z",
     nb_jours:nbJours, motif:document.getElementById("motif").value||"",
     signature_employe:document.getElementById("sigCanvas").toDataURL("image/png")
   };
@@ -471,7 +471,7 @@ function reset(){
 }
 
 function formatDate(d){const[y,m,j]=d.split("-");return j+"/"+m+"/"+y;}
-function formatDate2(d){if(!d)return "—";return new Date(d).toLocaleDateString("fr-FR");}
+function formatDate2(d){if(!d)return "—";const p=d.slice(0,10).split("-");return p[2]+"/"+p[1]+"/"+p[0];}
 
 const PA2_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/801f17f97cb6412e8a2e6dcd09191b62/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=4PaU8aSrwBs439mnSz7HgN6_ZD3f8CxS8u9Cg1ci4Mo";
 
@@ -600,24 +600,13 @@ async function chargerPlanning() {
       headers: {"Content-Type": "text/plain"},
       body: JSON.stringify({date_debut: debut, date_fin: fin})
     });
-    if(!resp.ok) throw new Error("PA4 HTTP " + resp.status);
+    if(!resp.ok) throw new Error("PA4");
     const raw = await resp.text();
-    let data;
-    try { data = JSON.parse(raw); } catch(pe) {
-      document.getElementById("planningLoading").style.display="block";
-      document.getElementById("planningLoading").innerHTML="🔍 RAW non-JSON: <pre style='font-size:10px;text-align:left;max-height:200px;overflow:auto;background:#f0f0f0;padding:8px'>" + raw.slice(0,1000) + "</pre>";
-      return;
-    }
+    const data = JSON.parse(raw);
     planningData = data.value || [];
-    // DEBUG TEMP — à supprimer après diagnostic
-    document.getElementById("planningLoading").style.display="block";
-    document.getElementById("planningLoading").innerHTML="🔍 RAW: <pre style='font-size:10px;text-align:left;max-height:200px;overflow:auto;background:#f0f0f0;padding:8px'>" + JSON.stringify(data, null, 2).slice(0,2000) + "</pre>";
-    document.getElementById("planningWrap").style.display="none";
-    setTimeout(()=>{ document.getElementById("planningLoading").style.display="none"; document.getElementById("planningWrap").style.display="block"; }, 15000);
     renderPlanning(mois, annee);
   } catch(e) {
-    document.getElementById("planningLoading").style.display="block";
-    document.getElementById("planningLoading").innerHTML="❌ ERREUR: " + e.message;
+    document.getElementById("planningLoading").innerHTML="⚠️ Erreur de chargement. Réessayez.";
   }
 }
 
@@ -645,16 +634,16 @@ function renderPlanning(mois, annee) {
       const demande = planningData.find(d => {
         const nom_d = (d.Nom_Employe && d.Nom_Employe.Value) || d.Nom_EmployeValue || "";
         if(nom_d !== nom) return false;
-        const dd = new Date(d.Date_Debut);
-        const df = new Date(d.Date_Fin);
+        const dd = new Date(d.Date_Debut.slice(0,10)+"T12:00:00");
+        const df = new Date(d.Date_Fin.slice(0,10)+"T12:00:00");
         dd.setHours(0,0,0,0); df.setHours(23,59,59,999); dateJ.setHours(12,0,0,0);
         return dateJ >= dd && dateJ <= df;
       });
       let cls = we ? "weekend" : "";
       let content = "";
       if(demande) {
-        const s = (demande.Statut && demande.Statut.Value) || demande.Statut || "";
-        if(s==="Approuvé"||s==="Clôturé") cls += " cell-approuve";
+        const s = ((demande.Statut && demande.Statut.Value) || demande.Statut || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+        if(s==="approuve"||s==="cloture") cls += " cell-approuve";
         else cls += " cell-attente";
         content = (demande.Type_Conge && demande.Type_Conge.Value) || demande.Type_Conge || "";
       }
