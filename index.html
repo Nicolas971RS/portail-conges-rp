@@ -380,6 +380,7 @@ async function chargerEquipe() {
     tbody.innerHTML="";
 
     for(const [nom, emp] of employes) {
+      console.log("Chargement solde pour:", nom, "id:", emp.id);
       // Solde SP
       let soldeBase = null;
       try {
@@ -432,7 +433,9 @@ async function chargerEquipe() {
     document.getElementById("equipeLoading").style.display="none";
     document.getElementById("equipeTableWrap").style.display="block";
   } catch(e){
-    document.getElementById("equipeLoading").innerHTML="⚠️ Erreur de chargement. Réessayez.";
+    console.error("chargerEquipe catch:", e);
+    document.getElementById("equipeLoading").style.display="block";
+    document.getElementById("equipeLoading").innerHTML="⚠️ Erreur: " + e.message;
   }
 }
 
