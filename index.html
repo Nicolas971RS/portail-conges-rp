@@ -354,7 +354,7 @@ async function chargerSoldeCP(employe_nom, joursCP, prefix) {
   try {
     const resp = await fetch(PA_SOLDE_URL, {
       method: "POST",
-      headers: {"Content-Type": "text/plain"},
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify({employe_id: emp.id})
     });
     if(!resp.ok) return;
