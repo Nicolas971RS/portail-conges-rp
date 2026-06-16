@@ -384,10 +384,15 @@ async function chargerEquipe() {
       let soldeBase = null;
       try {
         const r = await fetch(PA_SOLDE_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({employe_id:emp.id})});
-        if(r.ok){const raw=await r.text();const d=JSON.parse(raw);soldeBase=parseFloat(d.Solde_CP);}
+        if(r.ok){
+          const raw=await r.text();
+          const d=JSON.parse(raw);
+          const v=parseFloat(d.Solde_CP);
+          if(!isNaN(v)) soldeBase=v;
+        }
       } catch(e){}
 
-      if(soldeBase===null||isNaN(soldeBase)){
+      if(soldeBase===null){
         const tr=document.createElement("tr");
         tr.style.borderBottom="1px solid #e5e7eb";
         tr.innerHTML=`<td style="padding:10px 14px;font-weight:500">${nom}</td><td colspan="5" style="padding:10px 14px;text-align:center;color:var(--muted);font-style:italic">—</td>`;
@@ -856,9 +861,6 @@ function renderPlanning(mois, annee) {
   <div id="valList"></div>
 </div>
 
-</body>
-</html><!-- PLANNING CSS -->
-
 <!-- ÉQUIPE SCREEN -->
 <div class="screen" id="screen-equipe" style="display:none">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -885,6 +887,8 @@ function renderPlanning(mois, annee) {
     * Solde SP = valeur dans Employes_RP · Accumulation = +2.5j/mois depuis juin 2026 · CP en cours = congés Approuvés/En attente non clôturés
   </div>
 </div>
+
+</body>
 <style>
 .btn-relancer {
   margin-top: 10px;
