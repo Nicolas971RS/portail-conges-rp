@@ -369,76 +369,58 @@ async function chargerSoldeCP(employe_nom, joursCP, prefix) {
 
 async function chargerEquipe() {
   document.getElementById("equipeLoading").style.display="block";
+  document.getElementById("equipeLoading").innerHTML="⏳ Chargement…";
   document.getElementById("equipeTableWrap").style.display="none";
   try {
-    // 1. Charger tous les employés (Solde_CP)
-    const respEmp = await fetch(PA_SOLDE_URL, {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({employe_id:0})
-    });
-    // PA_SOLDE_URL ne supporte qu'un ID — on utilise PA5 pour avoir tous les congés
-    // et on appelle PA_SOLDE_URL pour chaque employé
     const now = new Date();
     const ref = new Date(2026,5,1);
     const moisEcoules = Math.max(0,(now.getFullYear()-ref.getFullYear())*12+(now.getMonth()-ref.getMonth()));
-
-    // Charger tous les congés via PA5 (employe_id=0 = tous)
-    const respConges = await fetch(PA5_URL,{
-      method:"POST", headers:{"Content-Type":"text/plain"},
-      body:JSON.stringify({employe_id:0})
-    });
-    const rawConges = await respConges.text();
-    const dataConges = JSON.parse(rawConges);
-    const tousConges = (dataConges.value||[]).map(d=>({
-      nom:(d.Nom_Employe&&d.Nom_Employe.Value)||d.Nom_EmployeValue||"",
-      type:(d.Type_Conge&&d.Type_Conge.Value)||d.Type_Conge||"",
-      statut:(d.Statut&&d.Statut.Value)||d.Statut||"",
-      nb:parseInt(d.Nb_Jours)||0
-    }));
-
-    // Charger soldes SP pour chaque employé
     const employes = Object.entries(EMPLOYES_MAP);
     const tbody = document.getElementById("equipeBody");
     tbody.innerHTML="";
 
     for(const [nom, emp] of employes) {
+      // Solde SP
       let soldeBase = null;
       try {
-        const r = await fetch(PA_SOLDE_URL,{
-          method:"POST", headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({employe_id:emp.id})
-        });
+        const r = await fetch(PA_SOLDE_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({employe_id:emp.id})});
         if(r.ok){const raw=await r.text();const d=JSON.parse(raw);soldeBase=parseFloat(d.Solde_CP);}
       } catch(e){}
 
-      if(soldeBase===null){
-        // Pas de solde (ex: Fabrice)
+      if(soldeBase===null||isNaN(soldeBase)){
         const tr=document.createElement("tr");
         tr.style.borderBottom="1px solid #e5e7eb";
         tr.innerHTML=`<td style="padding:10px 14px;font-weight:500">${nom}</td><td colspan="5" style="padding:10px 14px;text-align:center;color:var(--muted);font-style:italic">—</td>`;
-        tbody.appendChild(tr);
-        continue;
+        tbody.appendChild(tr); continue;
       }
 
-      const accumulation = moisEcoules * 2.5;
-      const soldeActuel = soldeBase + accumulation;
-      const joursCP = tousConges
-        .filter(d=>d.nom===nom && d.type==="CP" && ["Approuvé","En attente comptable","En attente Fabrice"].includes(d.statut))
-        .reduce((s,d)=>s+d.nb,0);
-      const soldeProjecte = soldeActuel - joursCP;
+      // Congés via PA5
+      let joursCP = 0;
+      try {
+        const r2 = await fetch(PA5_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({employe_id:emp.id})});
+        if(r2.ok){
+          const raw2=await r2.text();const d2=JSON.parse(raw2);
+          joursCP=(d2.value||[])
+            .filter(d=>{const t=(d.Type_Conge&&d.Type_Conge.Value)||d.Type_Conge||"";const s=(d.Statut&&d.Statut.Value)||d.Statut||"";return t==="CP"&&["Approuvé","En attente comptable","En attente Fabrice"].includes(s);})
+            .reduce((s,d)=>s+(parseInt(d.Nb_Jours)||0),0);
+        }
+      } catch(e){}
 
-      const couleur = soldeProjecte<0 ? "#dc2626" : soldeProjecte<5 ? "#d97706" : "#16a34a";
-      const bgCouleur = soldeProjecte<0 ? "#fff5f5" : soldeProjecte<5 ? "#fffbeb" : "#f0fdf4";
+      const accumulation = moisEcoules*2.5;
+      const soldeActuel = soldeBase+accumulation;
+      const soldeProjecte = soldeActuel-joursCP;
+      const couleur = soldeProjecte<0?"#dc2626":soldeProjecte<5?"#d97706":"#16a34a";
+      const bgCouleur = soldeProjecte<0?"#fff5f5":soldeProjecte<5?"#fffbeb":"#f0fdf4";
 
       const tr=document.createElement("tr");
       tr.style.borderBottom="1px solid #e5e7eb";
-      tr.style.background= tbody.children.length%2===0?"#fff":"#f9fafb";
+      tr.style.background=tbody.children.length%2===0?"#fff":"#f9fafb";
       tr.innerHTML=`
         <td style="padding:10px 14px;font-weight:500;color:var(--navy)">${nom}</td>
         <td style="padding:10px 14px;text-align:center">${soldeBase.toFixed(1)}</td>
         <td style="padding:10px 14px;text-align:center;color:#6366f1">+${accumulation.toFixed(1)}</td>
         <td style="padding:10px 14px;text-align:center;font-weight:600">${soldeActuel.toFixed(1)}</td>
-        <td style="padding:10px 14px;text-align:center;color:#d97706">${joursCP>0?'−'+joursCP:'—'}</td>
+        <td style="padding:10px 14px;text-align:center;color:#d97706">${joursCP>0?"−"+joursCP:"—"}</td>
         <td style="padding:10px 14px;text-align:center;font-weight:700;color:${couleur};background:${bgCouleur};border-radius:6px">${soldeProjecte.toFixed(1)}</td>`;
       tbody.appendChild(tr);
     }
