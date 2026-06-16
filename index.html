@@ -375,6 +375,13 @@ async function chargerEquipe() {
     const now = new Date();
     const ref = new Date(2026,5,1);
     const moisEcoules = Math.max(0,(now.getFullYear()-ref.getFullYear())*12+(now.getMonth()-ref.getMonth()));
+    // Charger tous les congés en une fois
+    let tousConges = [];
+    try {
+      const r0 = await fetch(PA5_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({employe_id:1})});
+      if(r0.ok){const raw0=await r0.text();const d0=JSON.parse(raw0);tousConges=d0.value||[];}
+    } catch(e){}
+
     const employes = Object.entries(EMPLOYES_MAP);
     const tbody = document.getElementById("equipeBody");
     tbody.innerHTML="";
@@ -389,7 +396,7 @@ async function chargerEquipe() {
           const raw=await r.text();
           const d=JSON.parse(raw);
           const v=parseFloat(d.Solde_CP);
-          if(!isNaN(v)) soldeBase=v;
+          if(!isNaN(v) && v !== -1) soldeBase=v;
         }
       } catch(e){}
 
@@ -400,16 +407,17 @@ async function chargerEquipe() {
         tbody.appendChild(tr); continue;
       }
 
-      // Congés via PA5
+      // Congés depuis cache
       let joursCP = 0;
       try {
-        const r2 = await fetch(PA5_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({employe_id:emp.id})});
-        if(r2.ok){
-          const raw2=await r2.text();const d2=JSON.parse(raw2);
-          joursCP=(d2.value||[])
-            .filter(d=>{const t=(d.Type_Conge&&d.Type_Conge.Value)||d.Type_Conge||"";const s=(d.Statut&&d.Statut.Value)||d.Statut||"";return t==="CP"&&["Approuvé","En attente comptable","En attente Fabrice"].includes(s);})
-            .reduce((s,d)=>s+(parseInt(d.Nb_Jours)||0),0);
-        }
+        joursCP = tousConges
+          .filter(d => {
+            const n = (d.Nom_Employe&&d.Nom_Employe.Value)||d.Nom_EmployeValue||"";
+            const t = (d.Type_Conge&&d.Type_Conge.Value)||d.Type_Conge||"";
+            const s = ((d.Statut&&d.Statut.Value)||d.Statut||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+            return n===nom && t==="CP" && ["approuve","en attente comptable","en attente fabrice"].includes(s);
+          })
+          .reduce((sum,d)=>sum+(parseInt(d.Nb_Jours)||0),0);
       } catch(e){}
 
       const accumulation = moisEcoules*2.5;
