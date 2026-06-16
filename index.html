@@ -126,6 +126,7 @@ textarea { resize: none; min-height: 80px; }
   <button class="tab-btn" id="tab-historique" onclick="showScreen(event,'historique')">📋 Mon historique</button>
   <button class="tab-btn" id="tab-planning" onclick="showScreen(event,'planning')">📅 Planning</button>
   <button class="tab-btn" id="tab-validation" onclick="showScreen(event,'validation')">✅ Validation</button>
+  <button class="tab-btn" id="tab-equipe" onclick="showScreen(event,'equipe')">👥 Équipe</button>
 </div>
 
 <!-- FORMULAIRE -->
@@ -366,6 +367,88 @@ async function chargerSoldeCP(employe_nom, joursCP, prefix) {
   } catch(e) { /* silencieux */ }
 }
 
+async function chargerEquipe() {
+  document.getElementById("equipeLoading").style.display="block";
+  document.getElementById("equipeTableWrap").style.display="none";
+  try {
+    // 1. Charger tous les employés (Solde_CP)
+    const respEmp = await fetch(PA_SOLDE_URL, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({employe_id:0})
+    });
+    // PA_SOLDE_URL ne supporte qu'un ID — on utilise PA5 pour avoir tous les congés
+    // et on appelle PA_SOLDE_URL pour chaque employé
+    const now = new Date();
+    const ref = new Date(2026,5,1);
+    const moisEcoules = Math.max(0,(now.getFullYear()-ref.getFullYear())*12+(now.getMonth()-ref.getMonth()));
+
+    // Charger tous les congés via PA5 (employe_id=0 = tous)
+    const respConges = await fetch(PA5_URL,{
+      method:"POST", headers:{"Content-Type":"text/plain"},
+      body:JSON.stringify({employe_id:0})
+    });
+    const rawConges = await respConges.text();
+    const dataConges = JSON.parse(rawConges);
+    const tousConges = (dataConges.value||[]).map(d=>({
+      nom:(d.Nom_Employe&&d.Nom_Employe.Value)||d.Nom_EmployeValue||"",
+      type:(d.Type_Conge&&d.Type_Conge.Value)||d.Type_Conge||"",
+      statut:(d.Statut&&d.Statut.Value)||d.Statut||"",
+      nb:parseInt(d.Nb_Jours)||0
+    }));
+
+    // Charger soldes SP pour chaque employé
+    const employes = Object.entries(EMPLOYES_MAP);
+    const tbody = document.getElementById("equipeBody");
+    tbody.innerHTML="";
+
+    for(const [nom, emp] of employes) {
+      let soldeBase = null;
+      try {
+        const r = await fetch(PA_SOLDE_URL,{
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({employe_id:emp.id})
+        });
+        if(r.ok){const raw=await r.text();const d=JSON.parse(raw);soldeBase=parseFloat(d.Solde_CP);}
+      } catch(e){}
+
+      if(soldeBase===null){
+        // Pas de solde (ex: Fabrice)
+        const tr=document.createElement("tr");
+        tr.style.borderBottom="1px solid #e5e7eb";
+        tr.innerHTML=`<td style="padding:10px 14px;font-weight:500">${nom}</td><td colspan="5" style="padding:10px 14px;text-align:center;color:var(--muted);font-style:italic">—</td>`;
+        tbody.appendChild(tr);
+        continue;
+      }
+
+      const accumulation = moisEcoules * 2.5;
+      const soldeActuel = soldeBase + accumulation;
+      const joursCP = tousConges
+        .filter(d=>d.nom===nom && d.type==="CP" && ["Approuvé","En attente comptable","En attente Fabrice"].includes(d.statut))
+        .reduce((s,d)=>s+d.nb,0);
+      const soldeProjecte = soldeActuel - joursCP;
+
+      const couleur = soldeProjecte<0 ? "#dc2626" : soldeProjecte<5 ? "#d97706" : "#16a34a";
+      const bgCouleur = soldeProjecte<0 ? "#fff5f5" : soldeProjecte<5 ? "#fffbeb" : "#f0fdf4";
+
+      const tr=document.createElement("tr");
+      tr.style.borderBottom="1px solid #e5e7eb";
+      tr.style.background= tbody.children.length%2===0?"#fff":"#f9fafb";
+      tr.innerHTML=`
+        <td style="padding:10px 14px;font-weight:500;color:var(--navy)">${nom}</td>
+        <td style="padding:10px 14px;text-align:center">${soldeBase.toFixed(1)}</td>
+        <td style="padding:10px 14px;text-align:center;color:#6366f1">+${accumulation.toFixed(1)}</td>
+        <td style="padding:10px 14px;text-align:center;font-weight:600">${soldeActuel.toFixed(1)}</td>
+        <td style="padding:10px 14px;text-align:center;color:#d97706">${joursCP>0?'−'+joursCP:'—'}</td>
+        <td style="padding:10px 14px;text-align:center;font-weight:700;color:${couleur};background:${bgCouleur};border-radius:6px">${soldeProjecte.toFixed(1)}</td>`;
+      tbody.appendChild(tr);
+    }
+    document.getElementById("equipeLoading").style.display="none";
+    document.getElementById("equipeTableWrap").style.display="block";
+  } catch(e){
+    document.getElementById("equipeLoading").innerHTML="⚠️ Erreur de chargement. Réessayez.";
+  }
+}
+
 function showScreen(evt, name) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -379,6 +462,7 @@ function showScreen(evt, name) {
     chargerHistorique();
   }
   if (name === "planning") chargerPlanning();
+  if (name === "equipe") chargerEquipe();
   if (name === "validation") { document.getElementById("valIdentite").value=""; document.getElementById("valList").innerHTML=""; document.getElementById("valMasseBar").classList.remove("visible"); }
 }
 
@@ -792,6 +876,33 @@ function renderPlanning(mois, annee) {
 
 </body>
 </html><!-- PLANNING CSS -->
+
+<!-- ÉQUIPE SCREEN -->
+<div class="screen" id="screen-equipe" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <h2 style="font-family:'Inter',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin:0">👥 Soldes Congés Payés — Équipe</h2>
+    <button onclick="chargerEquipe()" style="padding:7px 14px;background:var(--violet);color:#fff;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer">🔄 Actualiser</button>
+  </div>
+  <div id="equipeLoading" style="text-align:center;padding:32px;color:var(--muted);font-family:'Inter',sans-serif">⏳ Chargement…</div>
+  <div id="equipeTableWrap" style="display:none;overflow-x:auto">
+    <table id="equipeTable" style="width:100%;border-collapse:collapse;font-family:'Inter',sans-serif;font-size:14px">
+      <thead>
+        <tr style="background:var(--navy);color:#fff">
+          <th style="padding:10px 14px;text-align:left;border-radius:8px 0 0 0">Employé</th>
+          <th style="padding:10px 14px;text-align:center">Solde SP</th>
+          <th style="padding:10px 14px;text-align:center">Accumulation</th>
+          <th style="padding:10px 14px;text-align:center">Solde actuel</th>
+          <th style="padding:10px 14px;text-align:center">CP en cours</th>
+          <th style="padding:10px 14px;text-align:center;border-radius:0 8px 0 0">Solde projeté</th>
+        </tr>
+      </thead>
+      <tbody id="equipeBody"></tbody>
+    </table>
+  </div>
+  <div id="equipeNote" style="margin-top:12px;font-family:'Inter',sans-serif;font-size:12px;color:var(--muted)">
+    * Solde SP = valeur dans Employes_RP · Accumulation = +2.5j/mois depuis juin 2026 · CP en cours = congés Approuvés/En attente non clôturés
+  </div>
+</div>
 <style>
 .btn-relancer {
   margin-top: 10px;
