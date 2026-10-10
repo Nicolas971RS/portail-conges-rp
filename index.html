@@ -4233,7 +4233,6 @@ function getMatinDevisNouvelle(){
 
 // ── Tooltips sur les boutons d'action (injectés après chaque render) ──
 const TOOLTIPS_LEFT={
-  'openTraiterModal':'Renseigner le N° BL, les dates, le montant et les articles livrés',
   'openFacturerModal':'Saisir le numéro de facture une fois la livraison complète ou partielle',
   'openLivraisonPartielle':'Enregistrer une livraison incomplète — le reste à livrer est suivi automatiquement',
   'openNouveauDBCModal':'Enregistrer un enlèvement sans bon de commande — une demande est envoyée au client par email',
@@ -5167,7 +5166,7 @@ function openCreerBCDepuisBPA(id){
     const body={Title:num,N_x00b0_Devis:rs,ClientId:parseInt(clientId,10),Vendeurencharge:vendeur,Statut:'Reçu',Dateder_x00e9_ception:today+'T12:00:00Z',Remarques:g('bpa-rem')||null};
     if(mt)body.MontantHT=parseFloat(mt);
     const arr=g('bpa-arrivage');
-    if(arr&&_colArrivage!==false)body.Date_Arrivage_Attendu=arr+'T00:00:00Z';
+    if(arr&&_colArrivage!==false)body.Date_Arrivage_Attendu=arr+'T12:00:00Z';
     const frs=g('bpa-bcfrs');
     if(frs&&_colBCFrs!==false)body.N_BC_Fournisseur=frs;
     let created;
@@ -9713,15 +9712,15 @@ async function openTraiterModal(id,numBC,client){
       const aBL=!!(bl||(!blRetire&&String(f(currentItem,'N_x00b0_BL')||'').trim()));
       const dBL=datebl||(aBL&&!curDateBL?today:'');
       const dPEC=datepec||(aBL&&!curDatePEC?today:'');
-      if(!blRetire&&dBL&&dBL!==(curDateBL?curDateBL.slice(0,10):''))body['DateBL']=dBL+'T00:00:00Z';
-      if(!blRetire&&dPEC&&dPEC!==(curDatePEC?curDatePEC.slice(0,10):''))body['Datepriseencharge']=dPEC+'T00:00:00Z';
+      if(!blRetire&&dBL&&dBL!==(curDateBL?curDateBL.slice(0,10):''))body['DateBL']=dBL+'T12:00:00Z';
+      if(!blRetire&&dPEC&&dPEC!==(curDatePEC?curDatePEC.slice(0,10):''))body['Datepriseencharge']=dPEC+'T12:00:00Z';
     }
-    if(eta)body['DateLivraisonpr_x00e9_vue']=eta+'T00:00:00Z';
+    if(eta&&eta!==(curETA?curETA.slice(0,10):''))body['DateLivraisonpr_x00e9_vue']=eta+'T12:00:00Z'; // seulement si modifiée (évite de réécrire la date à chaque enregistrement)
     const arrivage=document.getElementById('m-arrivage')?.value;
     // Colonne optionnelle : on écrit dessus si elle existe, sinon on l'ignore
     // silencieusement (auto-détectée à la première tentative réussie/échouée).
     if(arrivage!==undefined&&arrivage!==(curArrivage?curArrivage.slice(0,10):'')&&_colArrivage!==false){
-      body['Date_Arrivage_Attendu']=arrivage?arrivage+'T00:00:00Z':null;
+      body['Date_Arrivage_Attendu']=arrivage?arrivage+'T12:00:00Z':null;
     }
     const bcFrs=document.getElementById('m-bcfrs')?.value.trim();
     if(bcFrs!==undefined&&bcFrs!==getBCFrs(currentItem)&&_colBCFrs!==false)body['N_BC_Fournisseur']=bcFrs||null;
@@ -12912,7 +12911,7 @@ function openNouveauDBCModal(){
       'Articles':articles,
       'Statut':'En attente BC',
     };
-    if(dateEnlev)body['Date_Enl_x00e8_vement']=dateEnlev+'T00:00:00Z';
+    if(dateEnlev)body['Date_Enl_x00e8_vement']=dateEnlev+'T12:00:00Z';
     if(numbl)body['N_x00b0_BL']=numbl;
     if(chef)body['Chefdechantier']=chef;
     const numDevis=document.getElementById('d-numdevis').value.trim();
