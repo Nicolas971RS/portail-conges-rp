@@ -279,7 +279,7 @@ textarea { resize: none; min-height: 80px; }
 </div>
 
 <script>
-const FLOW_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/308bfc7d48fa4a369baf65128acfb499/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=bbg4G0JCS4dMj3fX23N8rQB7LodCTR-Fezp7U0S0MrE";
+const FLOW_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/308bfc7d48fa4a369baf65128acfb499/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=bbg4G0JCS4dMj3fX23N8rQB7LodCTR-Fezp7U0S0MrE&t=YwOvk5CDc448vmPwk7GrI0zD";
 const SP_SITE = "https://reseauxplus971.sharepoint.com/sites/RseauxPlus";
 const LIST_NAME = "Demandes_Conges";
 const ADMINS = ["Fabrice Carew", "Nicolas Lemond"];
@@ -631,12 +631,12 @@ function reset(){
 function formatDate(d){const[y,m,j]=d.split("-");return j+"/"+m+"/"+y;}
 function formatDate2(d){if(!d)return "—";const p=d.slice(0,10).split("-");return p[2]+"/"+p[1]+"/"+p[0];}
 
-const PA2_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/801f17f97cb6412e8a2e6dcd09191b62/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=4PaU8aSrwBs439mnSz7HgN6_ZD3f8CxS8u9Cg1ci4Mo";
+const PA2_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/801f17f97cb6412e8a2e6dcd09191b62/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=4PaU8aSrwBs439mnSz7HgN6_ZD3f8CxS8u9Cg1ci4Mo&t=YwOvk5CDc448vmPwk7GrI0zD";
 
-const PA7_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2c7b824bb4294cd89a165ca434fd201a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=gYj_Qg7Zp0Nf5uA4xPJ5aSB5dKZYHC9JUTIxrC4HA-8";
+const PA7_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2c7b824bb4294cd89a165ca434fd201a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=gYj_Qg7Zp0Nf5uA4xPJ5aSB5dKZYHC9JUTIxrC4HA-8&t=YwOvk5CDc448vmPwk7GrI0zD";
 
-const PA5_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/c1beac7cf2db4b04bff108238fbda004/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ltOeg3_RTjgv4B30NmCEPYF-1AQz9frZP8DrhD9sCZo";
-const PA_SOLDE_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/73b3cd6245154cd694eca750a8414060/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=PCQrmMIdUM3tBd8DC8Mw-4wb8zsiIr7_56Z5edJYa6c";
+const PA5_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/c1beac7cf2db4b04bff108238fbda004/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ltOeg3_RTjgv4B30NmCEPYF-1AQz9frZP8DrhD9sCZo&t=YwOvk5CDc448vmPwk7GrI0zD";
+const PA_SOLDE_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/73b3cd6245154cd694eca750a8414060/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=PCQrmMIdUM3tBd8DC8Mw-4wb8zsiIr7_56Z5edJYa6c&t=YwOvk5CDc448vmPwk7GrI0zD";
 
 async function relancerValidateur(token, role, btn) {
   if (!token) return;
@@ -757,7 +757,7 @@ const EMPLOYES_ORDRE = ["Fabrice Carew","Frédéric Ballet","Fritz Peter","Moniq
 function moisPrecedent() { planningDate.setMonth(planningDate.getMonth()-1); chargerPlanning(); }
 function moisSuivant()   { planningDate.setMonth(planningDate.getMonth()+1); chargerPlanning(); }
 
-const PA4_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/bb52093dcc344b5485d31635895f80b9/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=mqvKluRyjk8w2jtyapdpTfVgP4ykGcXZoUW3lJVh6MA";
+const PA4_URL = "https://defaultd441528bbc7746368d248ac9d38aed.63.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/bb52093dcc344b5485d31635895f80b9/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=mqvKluRyjk8w2jtyapdpTfVgP4ykGcXZoUW3lJVh6MA&t=YwOvk5CDc448vmPwk7GrI0zD";
 
 async function chargerPlanning() {
   document.getElementById("planningLoading").style.display="block";
